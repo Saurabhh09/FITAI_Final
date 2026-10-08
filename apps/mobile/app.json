@@ -8,14 +8,16 @@
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.anonymous.fitaimobile"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#211F25",
         "foregroundImage": "./assets/adaptive-icon.png",
         "monochromeImage": "./assets/adaptive-icon-monochrome.png"
-      }
+      },
+      "package": "com.anonymous.fitaimobile"
     },
     "plugins": [
       "expo-router",

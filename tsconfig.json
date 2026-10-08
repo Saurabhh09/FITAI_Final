@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@fitai/nutrition-engine": [
+        "./packages/nutrition-engine/src/index.ts"
       ]
     }
   },

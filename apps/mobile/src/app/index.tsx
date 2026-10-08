@@ -1,7 +1,28 @@
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, Text, View } from "react-native";
+import { OnboardingScreen } from "../features/onboarding/onboarding-screen";
+import { type QuestionnaireAnswers } from "../features/onboarding/questionnaire";
+import { prepareMobileOnboardingSubmission } from "../features/onboarding/onboarding-service";
 
 export default function FoundationScreen() {
+  const [inOnboarding, setInOnboarding] = useState(false);
+  const [completedPlan, setCompletedPlan] = useState<QuestionnaireAnswers | null>(null);
+
+  if (inOnboarding) {
+    return (
+      <OnboardingScreen
+        initialAnswers={completedPlan ?? undefined}
+        onComplete={(answers) => {
+          // Validate and prepare submission payload using shared @fitai/nutrition-engine contract
+          prepareMobileOnboardingSubmission(answers);
+          setCompletedPlan(answers);
+          setInOnboarding(false);
+        }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <View style={styles.screen}>
@@ -13,17 +34,38 @@ export default function FoundationScreen() {
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.eyebrow}>NATIVE APP FOUNDATION</Text>
-          <Text style={styles.heading}>Your nutrition, made personal.</Text>
-          <Text style={styles.body}>
-            The iOS and Android app shell is in place. Sign-in, onboarding, food search, and tracking will be added in phases and connect to FITAI’s shared API.
+          <Text style={styles.eyebrow}>
+            {completedPlan ? "ONBOARDING COMPLETE" : "NATIVE APP FOUNDATION"}
           </Text>
+          <Text style={styles.heading}>
+            {completedPlan ? "Your personal plan is ready." : "Your nutrition, made personal."}
+          </Text>
+          <Text style={styles.body}>
+            {completedPlan
+              ? `Goal: ${completedPlan.goal ? completedPlan.goal.toUpperCase() : "CUSTOM"} · Diet: ${completedPlan.diet ? completedPlan.diet.replace("-", " ") : "Flexible"} · ${completedPlan.allergies?.length ? `Allergies: ${completedPlan.allergies.join(", ")}` : "No reported allergies"}.`
+              : "The iOS and Android app foundation is in place. You can test the full 19-step onboarding questionnaire or explore the app foundation."}
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={completedPlan ? "Review questionnaire answers" : "Start personalized onboarding"}
+            onPress={() => setInOnboarding(true)}
+            style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.primaryButtonText}>
+              {completedPlan ? "Review Answers" : "Start Questionnaire"}
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.notice} accessibilityRole="summary">
-          <Text style={styles.noticeTitle}>Foundation only</Text>
+          <Text style={styles.noticeTitle}>
+            {completedPlan ? "Plan Draft Stored" : "Foundation only"}
+          </Text>
           <Text style={styles.noticeBody}>
-            No account, food data, or nutrition totals are simulated in this build.
+            {completedPlan
+              ? "Your questionnaire answers are preserved in this session. Server-side account sync connects with Supabase authentication."
+              : "No account, food data, or nutrition totals are simulated in this build."}
           </Text>
         </View>
       </View>
@@ -110,5 +152,22 @@ const styles = StyleSheet.create({
     color: "#85838A",
     fontSize: 12,
     lineHeight: 18,
+  },
+  primaryButton: {
+    marginTop: 8,
+    minHeight: 52,
+    borderRadius: 16,
+    backgroundColor: "#211F25",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  pressed: {
+    opacity: 0.85,
   },
 });

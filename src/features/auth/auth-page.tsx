@@ -1,25 +1,12 @@
 import Link from "next/link";
 import { AuthForm } from "@/features/auth/auth-form";
+import { BrandLogo } from "@/features/brand/brand-logo";
 import type { AuthMode } from "@/features/auth/auth-payload";
-
-function Brand() {
-  return (
-    <Link className="brand" href="/" aria-label="FITAI home">
-      <span className="brand-mark" aria-hidden="true">
-        <svg className="icon" viewBox="0 0 24 24" fill="none">
-          <path d="M5 15.5c5.7 0 9.7-3.2 13.5-10C19.8 14.7 15.3 20 8.5 20 6.6 20 5 18.4 5 16.5v-1Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M5 20c2.6-4 5.5-6.6 9.5-8.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        </svg>
-      </span>
-      <span>FITAI</span>
-    </Link>
-  );
-}
 
 function BrandStory() {
   return (
     <aside className="auth-visual">
-      <div><Brand /></div>
+      <div><BrandLogo /></div>
       <div className="visual-copy">
         <p className="eyebrow">PERSONAL NUTRITION, MADE SIMPLE</p>
         <h1>Make your next meal <em>your best one.</em></h1>
@@ -60,7 +47,7 @@ export function AuthPage({ mode, authConfigured, status }: { mode: AuthMode; aut
       <BrandStory />
       <main className="auth-main">
         <div className="auth-main-inner">
-          <div className="auth-mobile-brand"><Brand /></div>
+          <div className="auth-mobile-brand"><BrandLogo /></div>
           <AuthForm key={mode} authConfigured={authConfigured} initialMode={mode} initialError={messages.error} initialSuccess={messages.success} />
         </div>
       </main>
