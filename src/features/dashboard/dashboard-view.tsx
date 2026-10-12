@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 import { BrandLogo } from "@/features/brand/brand-logo";
 import type { FoodSearchResult } from "@/services/food-data/normalize";
-import type { CanonicalFoodDetail, FoodServingOption } from "@/services/food-data/food-detail";
+import type { CanonicalFoodDetail } from "@/services/food-data/food-detail";
 
 export type TabId = "home" | "progress" | "community" | "profile";
 export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snacks";
@@ -204,6 +204,8 @@ export function DashboardView({
   }, [nutritionProfile.calorieRollover, yesterdayMeals, baseTargetCalories]);
 
   const dailyAvailableBudget = baseTargetCalories + calorieRolloverKcal;
+  const isOverBudget = dailyAvailableBudget > 0 && dayTotals.calories > dailyAvailableBudget;
+  const overKcal = isOverBudget ? dayTotals.calories - dailyAvailableBudget : 0;
   const caloriesLeft = Math.max(0, dailyAvailableBudget - dayTotals.calories);
   const caloriePercent = Math.min(100, Math.round((dayTotals.calories / (dailyAvailableBudget || 1)) * 100));
 
@@ -643,19 +645,45 @@ export function DashboardView({
             </div>
 
             {/* Main Dash Grid: Primary & Secondary */}
-            <div className="dash-main-grid" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20 }}>
+            <div className="dash-main-grid">
               {/* Primary Column: Calories + Macros + Meals */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div className="dash-primary">
                 {/* Calorie Card */}
-                <section className="calorie-card" style={{ padding: 24, borderRadius: 24, background: "#FFFFFF", border: "1px solid #EAE8EE", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                <section
+                  className="calorie-card"
+                  style={{ padding: 24, borderRadius: 24, background: "#FFFFFF", border: "1px solid #EAE8EE", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}
+                  aria-label={
+                    isOverBudget
+                      ? `Calorie budget: Over budget by ${overKcal} calories. ${dayTotals.calories} of ${dailyAvailableBudget} kcal consumed.`
+                      : `Calorie budget: ${caloriesLeft} calories remaining. ${dayTotals.calories} of ${dailyAvailableBudget} kcal consumed.`
+                  }
+                >
                   <div>
-                    <span className="eyebrow" style={{ fontSize: 10 }}>CALORIES LEFT TODAY</span>
-                    <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-0.05em", margin: "4px 0" }}>
-                      {caloriesLeft}
+                    <span
+                      className="eyebrow"
+                      style={{ fontSize: 10, color: isOverBudget ? "#BE5E64" : undefined }}
+                    >
+                      {isOverBudget ? "CALORIE BUDGET EXCEEDED" : "CALORIES LEFT TODAY"}
+                    </span>
+                    <div
+                      style={{
+                        fontSize: 44,
+                        fontWeight: 800,
+                        letterSpacing: "-0.05em",
+                        margin: "4px 0",
+                        color: isOverBudget ? "#BE5E64" : undefined,
+                      }}
+                    >
+                      {isOverBudget ? `+${overKcal}` : caloriesLeft}
                     </div>
                     <div style={{ fontSize: 12, color: "#8E8896" }}>
                       <strong>{dayTotals.calories}</strong> eaten of <strong>{dailyAvailableBudget}</strong> kcal
-                      {calorieRolloverKcal > 0 && (
+                      {isOverBudget && (
+                        <span style={{ marginLeft: 6, color: "#BE5E64", fontWeight: 700 }}>
+                          (+{overKcal} over budget)
+                        </span>
+                      )}
+                      {!isOverBudget && calorieRolloverKcal > 0 && (
                         <span style={{ marginLeft: 6, color: "#C66E45", fontWeight: 700 }}>
                           (+{calorieRolloverKcal} rollover)
                         </span>
@@ -666,10 +694,19 @@ export function DashboardView({
                   <div style={{ position: "relative", width: 100, height: 100 }}>
                     <svg viewBox="0 0 36 36" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
                       <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#EFEFF4" strokeWidth="3.6" />
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#211F25" strokeWidth="3.6" strokeDasharray={`${caloriePercent}, 100`} strokeLinecap="round" />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke={isOverBudget ? "#D76891" : "#211F25"}
+                        strokeWidth="3.6"
+                        strokeDasharray={`${caloriePercent}, 100`}
+                        strokeLinecap="round"
+                      />
                     </svg>
                     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 16, fontWeight: 800 }}>{caloriePercent}%</span>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: isOverBudget ? "#BE5E64" : undefined }}>
+                        {caloriePercent}%
+                      </span>
                     </div>
                   </div>
                 </section>
@@ -765,8 +802,9 @@ export function DashboardView({
                                   <button
                                     type="button"
                                     onClick={() => removeFoodItem(it.id)}
-                                    style={{ background: "none", border: 0, color: "#BE5E64", fontSize: 16, cursor: "pointer", padding: "0 4px" }}
-                                    title="Remove item"
+                                    className="delete-food"
+                                    style={{ width: 26, height: 26, borderRadius: 8, border: "1px solid #F5E8E8", background: "#FEF2F2", color: "#BE5E64", fontSize: 14, cursor: "pointer", display: "grid", placeItems: "center" }}
+                                    title={`Remove ${it.name}`}
                                     aria-label={`Remove ${it.name}`}
                                   >
                                     ×
@@ -785,7 +823,7 @@ export function DashboardView({
               </div>
 
               {/* Secondary Column: Coach + Water + Micronutrients */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div className="dash-secondary">
                 {/* Coaching & Guidance Card */}
                 <section className="coach-card" style={{ padding: 20, borderRadius: 22, background: "#FFFFFF", border: "1px solid #EAE8EE" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>

@@ -1,7 +1,9 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { getSupabasePublicConfig, hasSupabasePublicConfig, supabaseCookieOptions } from "./config";
 
 export class SupabaseConfigurationError extends Error {
@@ -21,9 +23,32 @@ export function hasSupabaseConfiguration(): boolean {
   return hasSupabasePublicConfig();
 }
 
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient(request?: NextRequest) {
   const config = getSupabasePublicConfig();
   if (!config) throw new SupabaseConfigurationError();
+
+  const authHeader = request?.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      const client = createClient(config.url, config.anonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        },
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      });
+      const originalGetUser = client.auth.getUser.bind(client.auth);
+      client.auth.getUser = (jwt?: string) => originalGetUser(jwt || token);
+      return client;
+    }
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient(config.url, config.anonKey, {

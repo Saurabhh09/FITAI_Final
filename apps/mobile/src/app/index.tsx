@@ -1,76 +1,109 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../features/auth/auth-context";
+import { AuthScreen } from "../features/auth/auth-screen";
+import { DashboardScreen } from "../features/dashboard/dashboard-screen";
 import { OnboardingScreen } from "../features/onboarding/onboarding-screen";
-import { type QuestionnaireAnswers } from "../features/onboarding/questionnaire";
-import { prepareMobileOnboardingSubmission } from "../features/onboarding/onboarding-service";
+import { submitMobileOnboarding } from "../features/onboarding/onboarding-service";
+import type { QuestionnaireAnswers } from "../features/onboarding/questionnaire";
+import { WelcomeScreen } from "../features/welcome/welcome-screen";
+import { getSupabase } from "../lib/supabase";
 
-export default function FoundationScreen() {
-  const [inOnboarding, setInOnboarding] = useState(false);
-  const [completedPlan, setCompletedPlan] = useState<QuestionnaireAnswers | null>(null);
+type UnauthenticatedRoute = "welcome" | "onboarding" | "signin" | "signup";
 
-  if (inOnboarding) {
+export default function MobileAppEntry() {
+  const { loading, session, user, hasNutritionProfile, profileLoading, signOut, refreshProfile } = useAuth();
+  const [cachedAnswers, setCachedAnswers] = useState<QuestionnaireAnswers | null>(null);
+  const [unauthRoute, setUnauthRoute] = useState<UnauthenticatedRoute>("welcome");
+
+  // 1. Initializing state
+  if (loading || (session && profileLoading && hasNutritionProfile === null)) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        <View style={styles.centeredScreen}>
+          <View style={styles.brandMark} accessible accessibilityLabel="FITAI mark">
+            <Text style={styles.brandLetter}>F</Text>
+          </View>
+          <Text style={styles.brandName}>FITAI</Text>
+          <ActivityIndicator size="small" color="#211F25" style={styles.loader} />
+          <Text style={styles.loadingText}>Initializing session...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // 2. Unauthenticated state -> Welcome screen / Onboarding / Auth
+  if (!session || !user) {
+    if (unauthRoute === "signin") {
+      return (
+        <AuthScreen
+          initialMode="signin"
+          onBack={() => setUnauthRoute("welcome")}
+        />
+      );
+    }
+
+    if (unauthRoute === "signup") {
+      return (
+        <AuthScreen
+          initialMode="signup"
+          onBack={() => setUnauthRoute(cachedAnswers ? "onboarding" : "welcome")}
+        />
+      );
+    }
+
+    if (unauthRoute === "onboarding") {
+      return (
+        <OnboardingScreen
+          initialAnswers={cachedAnswers ?? undefined}
+          onBackToWelcome={() => setUnauthRoute("welcome")}
+          onComplete={(answers) => {
+            setCachedAnswers(answers);
+            setUnauthRoute("signup");
+          }}
+        />
+      );
+    }
+
+    // Default opening screen for new and signed-out users
+    return (
+      <WelcomeScreen
+        onGetStarted={() => setUnauthRoute("onboarding")}
+        onSignIn={() => setUnauthRoute("signin")}
+      />
+    );
+  }
+
+  // 3. Authenticated without nutrition profile -> Onboarding flow
+  if (hasNutritionProfile === false) {
     return (
       <OnboardingScreen
-        initialAnswers={completedPlan ?? undefined}
-        onComplete={(answers) => {
-          // Validate and prepare submission payload using shared @fitai/nutrition-engine contract
-          prepareMobileOnboardingSubmission(answers);
-          setCompletedPlan(answers);
-          setInOnboarding(false);
+        initialAnswers={cachedAnswers ?? undefined}
+        onSignOut={async () => {
+          setUnauthRoute("welcome");
+          await signOut();
+        }}
+        onComplete={async (answers) => {
+          setCachedAnswers(answers);
+          const client = getSupabase();
+          const result = await submitMobileOnboarding(client, answers, {
+            displayName: user.user_metadata?.display_name ?? null,
+          });
+
+          if (!result.ok) {
+            throw new Error(result.error);
+          }
+
+          // RPC succeeded: refresh the profile check to transition to dashboard
+          await refreshProfile();
         }}
       />
     );
   }
 
-  return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <View style={styles.screen}>
-        <View style={styles.brandRow} accessibilityLabel="FITAI">
-          <View style={styles.brandMark} accessible accessibilityLabel="FITAI mark">
-            <Text style={styles.brandLetter}>F</Text>
-          </View>
-          <Text style={styles.brandName}>FITAI</Text>
-        </View>
-
-        <View style={styles.content}>
-          <Text style={styles.eyebrow}>
-            {completedPlan ? "ONBOARDING COMPLETE" : "NATIVE APP FOUNDATION"}
-          </Text>
-          <Text style={styles.heading}>
-            {completedPlan ? "Your personal plan is ready." : "Your nutrition, made personal."}
-          </Text>
-          <Text style={styles.body}>
-            {completedPlan
-              ? `Goal: ${completedPlan.goal ? completedPlan.goal.toUpperCase() : "CUSTOM"} · Diet: ${completedPlan.diet ? completedPlan.diet.replace("-", " ") : "Flexible"} · ${completedPlan.allergies?.length ? `Allergies: ${completedPlan.allergies.join(", ")}` : "No reported allergies"}.`
-              : "The iOS and Android app foundation is in place. You can test the full 19-step onboarding questionnaire or explore the app foundation."}
-          </Text>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={completedPlan ? "Review questionnaire answers" : "Start personalized onboarding"}
-            onPress={() => setInOnboarding(true)}
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.primaryButtonText}>
-              {completedPlan ? "Review Answers" : "Start Questionnaire"}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.notice} accessibilityRole="summary">
-          <Text style={styles.noticeTitle}>
-            {completedPlan ? "Plan Draft Stored" : "Foundation only"}
-          </Text>
-          <Text style={styles.noticeBody}>
-            {completedPlan
-              ? "Your questionnaire answers are preserved in this session. Server-side account sync connects with Supabase authentication."
-              : "No account, food data, or nutrition totals are simulated in this build."}
-          </Text>
-        </View>
-      </View>
-    </SafeAreaView>
-  );
+  // 4. Authenticated with nutrition profile -> Mobile Nutrition Dashboard!
+  return <DashboardScreen />;
 }
 
 const styles = StyleSheet.create({
@@ -78,18 +111,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8F7FB",
   },
-  screen: {
+  centeredScreen: {
     flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  brandRow: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    justifyContent: "center",
+    gap: 12,
+    paddingHorizontal: 24,
   },
   brandMark: {
     width: 40,
@@ -111,63 +138,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.8,
   },
-  content: {
-    gap: 14,
-    paddingVertical: 48,
+  loader: {
+    marginTop: 12,
   },
-  eyebrow: {
-    color: "#A09DA5",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-  },
-  heading: {
-    maxWidth: 340,
-    color: "#211F25",
-    fontSize: 42,
-    fontWeight: "800",
-    letterSpacing: -2.4,
-    lineHeight: 46,
-  },
-  body: {
-    maxWidth: 430,
+  loadingText: {
     color: "#77747C",
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  notice: {
-    gap: 5,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#EAE9ED",
-    borderRadius: 18,
-    backgroundColor: "#FFFFFF",
-  },
-  noticeTitle: {
-    color: "#211F25",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  noticeBody: {
-    color: "#85838A",
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  primaryButton: {
-    marginTop: 8,
-    minHeight: 52,
-    borderRadius: 16,
-    backgroundColor: "#211F25",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
-  },
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  pressed: {
-    opacity: 0.85,
+    fontSize: 14,
+    fontWeight: "500",
   },
 });

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
+  ActivityIndicator,
   Animated,
   KeyboardAvoidingView,
   PanResponder,
@@ -51,7 +52,9 @@ const ICONS: Record<string, string> = {
 
 type OnboardingScreenProps = Readonly<{
   initialAnswers?: QuestionnaireAnswers;
-  onComplete: (answers: QuestionnaireAnswers) => void;
+  onComplete: (answers: QuestionnaireAnswers) => void | Promise<void>;
+  onSignOut?: () => void;
+  onBackToWelcome?: () => void;
 }>;
 
 function selectSingle(answers: QuestionnaireAnswers, id: QuestionnaireStepId): string | undefined {
@@ -295,7 +298,7 @@ function getInsight(step: QuestionnaireStep, answers: QuestionnaireAnswers) {
   };
 }
 
-export function OnboardingScreen({ initialAnswers, onComplete }: OnboardingScreenProps) {
+export function OnboardingScreen({ initialAnswers, onComplete, onSignOut, onBackToWelcome }: OnboardingScreenProps) {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [answers, setAnswers] = useState<QuestionnaireAnswers>(() => initialAnswers ?? { allergies: [], health: [], foodPrefs: [], barriers: [] });
@@ -304,6 +307,7 @@ export function OnboardingScreen({ initialAnswers, onComplete }: OnboardingScree
   const [heightUnit, setHeightUnit] = useState<"cm" | "ft / in">("cm");
   const [reduceMotion, setReduceMotion] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [transition] = useState(() => new Animated.Value(1));
 
   const flow = getVisibleFlow(answers);
@@ -339,7 +343,7 @@ export function OnboardingScreen({ initialAnswers, onComplete }: OnboardingScree
     setError("");
   }
 
-  function advance() {
+  async function advance() {
     if (!isStepValid(step, answers)) {
       setError(step.id === "dob" ? "Enter a valid date of birth to continue." : "Choose an answer to continue.");
       return;
@@ -349,7 +353,14 @@ export function OnboardingScreen({ initialAnswers, onComplete }: OnboardingScree
       setStepId(flow[currentIndex + 1].id);
       return;
     }
-    onComplete(answers);
+    try {
+      setSubmitting(true);
+      await onComplete(answers);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save profile. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function goBack() {
@@ -823,9 +834,13 @@ export function OnboardingScreen({ initialAnswers, onComplete }: OnboardingScree
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Previous step"
-            disabled={currentIndex === 0}
-            onPress={goBack}
-            style={({ pressed }) => [styles.backButton, currentIndex === 0 && styles.backDisabled, pressed && styles.pressed]}
+            disabled={currentIndex === 0 && !onBackToWelcome}
+            onPress={currentIndex === 0 ? onBackToWelcome : goBack}
+            style={({ pressed }) => [
+              styles.backButton,
+              currentIndex === 0 && !onBackToWelcome && styles.backDisabled,
+              pressed && styles.pressed,
+            ]}
           >
             <Text style={styles.backArrow}>‹</Text>
           </Pressable>
@@ -875,16 +890,22 @@ export function OnboardingScreen({ initialAnswers, onComplete }: OnboardingScree
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={buttonLabel}
-            disabled={!isStepValid(step, answers)}
+            disabled={!isStepValid(step, answers) || submitting}
             onPress={advance}
             style={({ pressed }) => [
               styles.continueButton,
-              !isStepValid(step, answers) && styles.continueDisabled,
+              (!isStepValid(step, answers) || submitting) && styles.continueDisabled,
               pressed && styles.pressed
             ]}
           >
-            <Text style={styles.continueText}>{buttonLabel}</Text>
-            <Text style={styles.continueArrow}>→</Text>
+            {submitting ? (
+              <ActivityIndicator color={COLORS.white} size="small" />
+            ) : (
+              <>
+                <Text style={styles.continueText}>{buttonLabel}</Text>
+                <Text style={styles.continueArrow}>→</Text>
+              </>
+            )}
           </Pressable>
         </View>
       </KeyboardAvoidingView>

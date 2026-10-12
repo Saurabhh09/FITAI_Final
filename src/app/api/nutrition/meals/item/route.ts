@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   let supabase;
   let user;
   try {
-    supabase = await createSupabaseServerClient();
+    supabase = await createSupabaseServerClient(request);
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     if (authError || !authUser) {
       return NextResponse.json({ error: "Authentication required to log meals." }, { status: 401 });
@@ -201,7 +201,7 @@ export async function DELETE(request: NextRequest) {
   let supabase;
   let user;
   try {
-    supabase = await createSupabaseServerClient();
+    supabase = await createSupabaseServerClient(request);
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     if (authError || !authUser) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });

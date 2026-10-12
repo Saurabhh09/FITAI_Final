@@ -45,6 +45,12 @@ function expectedRequestOrigin(request: NextRequest): string | null {
 }
 
 export function requireSameOrigin(request: NextRequest): NextResponse | null {
+  // Bearer-authenticated API requests carry explicit caller credentials and are not subject to ambient-cookie CSRF
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    return null;
+  }
+
   const origin = request.headers.get("origin");
   if (!origin) return null;
 

@@ -25,7 +25,7 @@ export async function DELETE(
   let supabase;
   let user;
   try {
-    supabase = await createSupabaseServerClient();
+    supabase = await createSupabaseServerClient(request);
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     if (authError || !authUser) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });

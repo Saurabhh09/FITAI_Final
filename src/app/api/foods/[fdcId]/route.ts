@@ -27,7 +27,7 @@ export async function GET(
 
   let supabase;
   try {
-    supabase = await createSupabaseServerClient();
+    supabase = await createSupabaseServerClient(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Authentication required to view food details." }, { status: 401 });

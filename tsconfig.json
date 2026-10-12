@@ -43,5 +43,6 @@
     "node_modules",
     "uploads",
     "apps/mobile"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

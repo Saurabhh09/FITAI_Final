@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const { weightKg, recordedAt, note } = parseResult.data;
 
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });
