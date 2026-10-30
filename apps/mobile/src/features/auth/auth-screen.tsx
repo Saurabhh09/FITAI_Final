@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -91,9 +92,13 @@ export function AuthScreen({ initialMode = "signin", onBack }: AuthScreenProps =
               </Pressable>
             ) : null}
             <View style={styles.brandRow} accessibilityLabel="FITAI">
-              <View style={styles.brandMark} accessible accessibilityLabel="FITAI mark">
-                <Text style={styles.brandLetter}>F</Text>
-              </View>
+              <Image
+                source={require("../../../assets/logo.png")}
+                style={styles.brandLogo}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="FITAI mark"
+              />
               <Text style={styles.brandName}>FITAI</Text>
             </View>
           </View>
@@ -286,6 +291,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  brandLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
   },
   brandMark: {
     width: 40,

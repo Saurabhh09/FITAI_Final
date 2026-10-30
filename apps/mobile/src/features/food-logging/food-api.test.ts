@@ -7,7 +7,123 @@ import {
 } from "./food-api";
 
 describe("food-api", () => {
-  const mockToken = "mock-supabase-bearer-token-123";
+  const mockUser = { id: "user-abc-123", email: "tester@fitai.local" };
+
+  function createMockSupabase(overrides?: {
+    getUserError?: Error | null;
+    getUserData?: typeof mockUser | null;
+    foodsSelectData?: any;
+    mealSelectData?: any;
+    mealInsertData?: any;
+    mealItemInsertData?: any;
+    nutrientsData?: any;
+    deleteError?: Error | null;
+    rpcData?: string | null;
+    rpcError?: Error | null;
+  }) {
+    return {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: overrides?.getUserData !== undefined ? overrides.getUserData : mockUser },
+          error: overrides?.getUserError ?? null,
+        }),
+      },
+      rpc: vi.fn().mockResolvedValue({
+        data: overrides?.rpcData ?? "food-persisted-uuid",
+        error: overrides?.rpcError ?? null,
+      }),
+      from: vi.fn((table: string) => {
+        if (table === "foods") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  maybeSingle: vi.fn().mockResolvedValue({
+                    data: overrides?.foodsSelectData ?? null,
+                    error: null,
+                  }),
+                }),
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: overrides?.foodsSelectData ?? null,
+                  error: null,
+                }),
+              }),
+              ilike: vi.fn().mockReturnValue({
+                limit: vi.fn().mockResolvedValue({
+                  data: Array.isArray(overrides?.foodsSelectData) ? overrides?.foodsSelectData : [],
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === "meals") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                  eq: vi.fn().mockReturnValue({
+                    maybeSingle: vi.fn().mockResolvedValue({
+                      data: overrides?.mealSelectData ?? null,
+                      error: null,
+                    }),
+                  }),
+                }),
+              }),
+            }),
+            insert: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: overrides?.mealInsertData ?? { id: "new-meal-id" },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === "meal_items") {
+          return {
+            insert: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: overrides?.mealItemInsertData ?? {
+                    id: "new-item-id",
+                    created_at: new Date().toISOString(),
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+            delete: vi.fn().mockReturnValue({
+              eq: vi.fn((col: string, val: any) => {
+                const result = { error: overrides?.deleteError ?? null };
+                return Object.assign(Promise.resolve(result), {
+                  eq: vi.fn().mockResolvedValue(result),
+                });
+              }),
+            }),
+          };
+        }
+        if (table === "food_nutrients") {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({
+                data: overrides?.nutrientsData ?? [
+                  { nutrient_id: "1008", amount_per_100g: 89, unit: "kcal" },
+                  { nutrient_id: "1003", amount_per_100g: 1.1, unit: "g" },
+                  { nutrient_id: "1005", amount_per_100g: 22.8, unit: "g" },
+                  { nutrient_id: "1004", amount_per_100g: 0.3, unit: "g" },
+                  { nutrient_id: "1079", amount_per_100g: 2.6, unit: "g" },
+                ],
+                error: null,
+              }),
+            }),
+          };
+        }
+        return {};
+      }),
+    } as any;
+  }
 
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -19,7 +135,7 @@ describe("food-api", () => {
 
   describe("searchFoodsApi", () => {
     it("rejects search query shorter than 2 characters before making a network call", async () => {
-      const res = await searchFoodsApi("a", mockToken);
+      const res = await searchFoodsApi("a");
       expect(res.ok).toBe(false);
       if (!res.ok) {
         expect(res.error).toContain("at least 2 characters");
@@ -27,11 +143,10 @@ describe("food-api", () => {
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it("attaches Authorization Bearer token and parses search results", async () => {
+    it("queries USDA FoodData Central directly and parses search results", async () => {
       const mockFoods = [
         {
-          source: "USDA FoodData Central",
-          sourceId: "12345",
+          fdcId: 12345,
           description: "Honeycrisp Apple",
           dataType: "Foundation",
           brandOwner: null,
@@ -42,231 +157,188 @@ describe("food-api", () => {
       (fetch as any).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ source: "USDA FoodData Central", foods: mockFoods }),
+        json: async () => ({ foods: mockFoods }),
       });
 
-      const res = await searchFoodsApi("apple", mockToken, 10);
+      const res = await searchFoodsApi("apple", undefined, 10);
       expect(res.ok).toBe(true);
       if (res.ok) {
         expect(res.data).toHaveLength(1);
         expect(res.data[0].description).toBe("Honeycrisp Apple");
+        expect(res.data[0].sourceId).toBe("12345");
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/foods/search?q=apple&limit=10"),
-        expect.objectContaining({
-          method: "GET",
-          headers: expect.objectContaining({
-            Authorization: `Bearer ${mockToken}`,
-          }),
-        })
+        expect.stringContaining("api.nal.usda.gov/fdc/v1/foods/search"),
+        expect.objectContaining({ method: "GET" })
       );
     });
 
-    it("propagates search error message from API response without fake fallback", async () => {
-      (fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 503,
-        json: async () => ({ error: "USDA FoodData Central is not configured." }),
-      });
-
-      const res = await searchFoodsApi("chicken", mockToken);
-      expect(res.ok).toBe(false);
-      if (!res.ok) {
-        expect(res.error).toBe("USDA FoodData Central is not configured.");
-        expect(res.status).toBe(503);
-      }
-    });
-
-    it("handles network failure cleanly", async () => {
+    it("falls back to Supabase cached foods when USDA fetch encounters error", async () => {
       (fetch as any).mockRejectedValueOnce(new Error("Network connection dropped"));
 
-      const res = await searchFoodsApi("egg", mockToken);
-      expect(res.ok).toBe(false);
-      if (!res.ok) {
-        expect(res.error).toBe("Network connection dropped");
+      const mockSupabase = createMockSupabase({
+        foodsSelectData: [
+          {
+            id: "local-food-1",
+            source_system: "OTHER_VERIFIED",
+            source_food_id: "quick:apple",
+            description: "Apple",
+            brand_owner: null,
+            food_category: "Quick Foods",
+          },
+        ],
+      });
+
+      const res = await searchFoodsApi("apple", undefined, 10, mockSupabase);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.data).toHaveLength(1);
+        expect(res.data[0].description).toBe("Apple");
       }
     });
   });
 
   describe("fetchFoodDetailApi", () => {
     it("rejects empty fdcId", async () => {
-      const res = await fetchFoodDetailApi("   ", mockToken);
+      const res = await fetchFoodDetailApi("   ");
       expect(res.ok).toBe(false);
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it("fetches canonical food details with Bearer token", async () => {
-      const mockDetail = {
-        sourceSystem: "USDA_FDC",
-        sourceFoodId: "998877",
+    it("returns cached food detail from Supabase if already present", async () => {
+      const mockCachedFood = {
+        id: "food-123",
+        source_system: "USDA_FDC",
+        source_food_id: "998877",
         description: "Greek Yogurt",
-        nutrients: [{ nutrientId: "1008", name: "Energy", unit: "kcal", amountPer100g: 100 }],
-        servings: [{ sourcePortionId: "100g", description: "100 grams", gramWeight: 100, isDefault: true }],
+        brand_owner: "Chobani",
+        food_category: "Dairy",
+        food_nutrients: [
+          { nutrient_id: "1008", amount_per_100g: 100, unit: "kcal" },
+          { nutrient_id: "1003", amount_per_100g: 10, unit: "g" },
+        ],
+        food_servings: [
+          { source_portion_id: "100g", description: "100 grams", gram_weight: 100, is_default: true },
+        ],
       };
+
+      const mockSupabase = createMockSupabase({ foodsSelectData: mockCachedFood });
+      const res = await fetchFoodDetailApi("998877", undefined, mockSupabase);
+
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.data.description).toBe("Greek Yogurt");
+        expect(res.data.nutrients).toHaveLength(2);
+      }
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("fetches directly from USDA FoodData Central when not in Supabase cache", async () => {
+      const mockSupabase = createMockSupabase({ foodsSelectData: null });
 
       (fetch as any).mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ food: mockDetail }),
+        json: async () => ({
+          fdcId: 998877,
+          description: "Raw Banana",
+          foodNutrients: [
+            { nutrientId: 1008, amount: 89 },
+            { nutrientId: 1003, amount: 1.1 },
+          ],
+        }),
       });
 
-      const res = await fetchFoodDetailApi("998877", mockToken);
+      const res = await fetchFoodDetailApi("998877", undefined, mockSupabase);
       expect(res.ok).toBe(true);
       if (res.ok) {
-        expect(res.data.description).toBe("Greek Yogurt");
-        expect(res.data.nutrients).toHaveLength(1);
+        expect(res.data.description).toBe("Raw Banana");
+        expect(res.data.sourceFoodId).toBe("998877");
       }
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/foods/998877"),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: `Bearer ${mockToken}`,
-          }),
-        })
+        expect.stringContaining("api.nal.usda.gov/fdc/v1/food/998877"),
+        expect.objectContaining({ method: "GET" })
       );
-    });
-
-    it("handles food not found cleanly", async () => {
-      (fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        json: async () => ({ error: "Food item not found." }),
-      });
-
-      const res = await fetchFoodDetailApi("000000", mockToken);
-      expect(res.ok).toBe(false);
-      if (!res.ok) {
-        expect(res.error).toBe("Food item not found.");
-        expect(res.status).toBe(404);
-      }
     });
   });
 
   describe("logMealItemApi", () => {
-    it("submits authenticated meal logging payload and returns created item", async () => {
-      const mockLogged = {
-        id: "item-new-1",
-        mealId: "meal-container-1",
-        foodId: "food-uuid-1",
-        name: "Oatmeal",
-        serving: "50g",
-        weightGrams: 50,
-        calories: 195,
-        protein: 8.5,
-        carbs: 33,
-        fat: 3.5,
-        fiber: 5.3,
-        mealType: "Breakfast",
-      };
-
-      (fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ ok: true, item: mockLogged }),
+    it("logs a verified quick food item directly to Supabase", async () => {
+      const mockSupabase = createMockSupabase({
+        foodsSelectData: { id: "existing-banana-food-id" },
+        mealSelectData: { id: "existing-meal-id" },
+        mealItemInsertData: { id: "created-item-id" },
       });
 
       const res = await logMealItemApi(
         {
           date: "2026-10-08",
           mealType: "breakfast",
-          nameSnapshot: "Oatmeal",
-          quantityGrams: 50,
-          quickFoodId: "oats",
-          servingDescription: "1 bowl (50g)",
+          nameSnapshot: "Banana",
+          quantityGrams: 118,
+          quickFoodId: "banana",
+          servingDescription: "1 medium (118g)",
         },
-        mockToken
+        undefined,
+        mockSupabase
       );
 
       expect(res.ok).toBe(true);
       if (res.ok) {
-        expect(res.data.calories).toBe(195);
-        expect(res.data.id).toBe("item-new-1");
+        expect(res.data.id).toBe("created-item-id");
+        expect(res.data.mealType).toBe("Breakfast");
+        expect(res.data.calories).toBeGreaterThan(0);
       }
 
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/nutrition/meals/item"),
-        expect.objectContaining({
-          method: "POST",
-          headers: expect.objectContaining({
-            Authorization: `Bearer ${mockToken}`,
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify({
-            date: "2026-10-08",
-            mealType: "breakfast",
-            nameSnapshot: "Oatmeal",
-            quantityGrams: 50,
-            quickFoodId: "oats",
-            servingDescription: "1 bowl (50g)",
-          }),
-        })
-      );
+      expect(mockSupabase.from).toHaveBeenCalledWith("meal_items");
     });
 
-    it("propagates validation failure from server", async () => {
-      (fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 422,
-        json: async () => ({ error: "Quantity must be 5000g or less" }),
-      });
-
+    it("fails when user is unauthenticated", async () => {
+      const mockSupabase = createMockSupabase({ getUserData: null });
       const res = await logMealItemApi(
         {
           date: "2026-10-08",
           mealType: "breakfast",
-          nameSnapshot: "Huge meal",
-          quantityGrams: 8000,
+          nameSnapshot: "Banana",
+          quantityGrams: 118,
+          quickFoodId: "banana",
         },
-        mockToken
+        undefined,
+        mockSupabase
       );
 
       expect(res.ok).toBe(false);
       if (!res.ok) {
-        expect(res.error).toBe("Quantity must be 5000g or less");
-        expect(res.status).toBe(422);
+        expect(res.error).toContain("Authentication required");
+        expect(res.status).toBe(401);
       }
     });
   });
 
   describe("deleteMealItemApi", () => {
-    it("issues DELETE request with Bearer token and returns deletedId", async () => {
-      (fetch as any).mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ ok: true, deletedId: "item-del-1" }),
-      });
+    it("deletes meal item directly from Supabase for authenticated user", async () => {
+      const mockSupabase = createMockSupabase();
+      const res = await deleteMealItemApi("item-del-1", undefined, mockSupabase);
 
-      const res = await deleteMealItemApi("item-del-1", mockToken);
       expect(res.ok).toBe(true);
       if (res.ok) {
         expect(res.data).toBe("item-del-1");
       }
 
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/nutrition/meals/item/item-del-1"),
-        expect.objectContaining({
-          method: "DELETE",
-          headers: expect.objectContaining({
-            Authorization: `Bearer ${mockToken}`,
-          }),
-        })
-      );
+      expect(mockSupabase.from).toHaveBeenCalledWith("meal_items");
     });
 
-    it("handles delete failure gracefully", async () => {
-      (fetch as any).mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: async () => ({ error: "Could not delete meal item." }),
+    it("handles delete error gracefully", async () => {
+      const mockSupabase = createMockSupabase({
+        deleteError: new Error("Row not found or unauthorized"),
       });
 
-      const res = await deleteMealItemApi("item-del-error", mockToken);
+      const res = await deleteMealItemApi("item-del-error", undefined, mockSupabase);
       expect(res.ok).toBe(false);
       if (!res.ok) {
-        expect(res.error).toBe("Could not delete meal item.");
-        expect(res.status).toBe(500);
+        expect(res.error).toBe("Row not found or unauthorized");
       }
     });
   });

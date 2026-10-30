@@ -18,11 +18,16 @@ export async function checkUserNutritionProfileExists(
   }
 
   try {
-    const { data, error } = await supabase
+    const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: { message: "Profile check timeout" } }), 5000)
+    );
+    const queryPromise = supabase
       .from("user_nutrition_profiles")
       .select("user_id")
       .eq("user_id", userId)
       .maybeSingle();
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error) {
       return { exists: false, error: error.message };

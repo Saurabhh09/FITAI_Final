@@ -170,8 +170,8 @@ export function FoodDetailView({
       {/* Live Nutrition Fact Badges */}
       <View style={styles.nutritionRow}>
         <View style={[styles.nutrientBadge, styles.calBadge]}>
-          <Text style={styles.nutrientVal}>{preview.calories ?? "—"}</Text>
-          <Text style={styles.nutrientLabel}>Calories</Text>
+          <Text style={[styles.nutrientVal, styles.calVal]}>{preview.calories ?? "—"}</Text>
+          <Text style={[styles.nutrientLabel, styles.calLabel]}>Calories</Text>
         </View>
         <View style={styles.nutrientBadge}>
           <Text style={styles.nutrientVal}>{preview.protein !== null ? `${preview.protein}g` : "—"}</Text>
@@ -336,7 +336,7 @@ export function FoodDetailView({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 8,
     paddingBottom: 40,
     gap: 16,
   },
@@ -398,6 +398,16 @@ const styles = StyleSheet.create({
   calBadge: {
     backgroundColor: "#211F25",
     borderColor: "#211F25",
+  },
+  calVal: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  calLabel: {
+    color: "#D1D1D6",
+    fontSize: 10,
+    fontWeight: "700",
   },
   nutrientVal: {
     color: "#211F25",

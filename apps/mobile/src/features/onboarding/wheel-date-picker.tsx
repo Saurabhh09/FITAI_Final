@@ -115,6 +115,7 @@ function WheelColumn<T>({
       <FlatList
         ref={listRef}
         data={items}
+        style={styles.list}
         keyExtractor={(_, idx) => String(idx)}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
@@ -288,13 +289,17 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
     backgroundColor: "#EBE9EE",
     borderRadius: 14,
-    zIndex: 1
+    zIndex: 0,
+    elevation: 0
+  },
+  list: {
+    flex: 1,
+    zIndex: 10
   },
   item: {
     height: ITEM_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2
   },
   itemText: {
     fontSize: 16,

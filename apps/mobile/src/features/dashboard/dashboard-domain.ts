@@ -44,7 +44,26 @@ export type DashboardNutritionProfile = {
   goal: string;
   weightKg: number;
   targetWeightKg: number | null;
+  heightCm?: number | null;
   displayName: string;
+};
+
+export type DayRingStatus = "on_target" | "yellow" | "red" | "dotted" | "future";
+
+export type DayCalorieSummary = {
+  date: string;
+  calories: number;
+  targetCalories: number;
+  hasMeals: boolean;
+  status: DayRingStatus;
+};
+
+export type UserStreakData = {
+  currentStreak: number;
+  longestStreak: number;
+  totalMealsLogged: number;
+  totalDaysLogged: number;
+  loggedDates: string[];
 };
 
 export const CORE_NUTRIENT_IDS = {
@@ -179,3 +198,98 @@ export function groupMealItemsIntoBuckets(items: LoggedMealItem[]): LoggedMealBu
     };
   });
 }
+
+/**
+ * Returns an array of YYYY-MM-DD dates centered around centerDate.
+ */
+export function getDatesInStrip(centerDate: string, rangeBefore: number = 3, rangeAfter: number = 3): string[] {
+  const current = dateFromISO(centerDate);
+  const result: string[] = [];
+  for (let offset = -rangeBefore; offset <= rangeAfter; offset++) {
+    const d = new Date(current);
+    d.setDate(d.getDate() + offset);
+    result.push(dateKey(d));
+  }
+  return result;
+}
+
+/**
+ * Calculates user's active day streak and all-time longest streak from logged dates.
+ * An active streak requires logging today or yesterday.
+ */
+export function calculateUserStreak(
+  loggedDates: string[],
+  today: string = todayISO()
+): { currentStreak: number; longestStreak: number } {
+  const dateSet = new Set(loggedDates);
+  const yesterday = getYesterdayISO(today);
+
+  let currentStreak = 0;
+  let checkDate: string | null = null;
+
+  if (dateSet.has(today)) {
+    checkDate = today;
+  } else if (dateSet.has(yesterday)) {
+    checkDate = yesterday;
+  }
+
+  if (checkDate) {
+    while (dateSet.has(checkDate)) {
+      currentStreak++;
+      checkDate = getYesterdayISO(checkDate);
+    }
+  }
+
+  // Calculate all-time longest streak
+  const sortedDates = [...dateSet].sort();
+  let longestStreak = 0;
+  let tempStreak = 0;
+  let lastDate: string | null = null;
+
+  for (const dStr of sortedDates) {
+    if (!lastDate) {
+      tempStreak = 1;
+    } else {
+      const expectedTomorrow = getTomorrowISO(lastDate);
+      if (dStr === expectedTomorrow) {
+        tempStreak++;
+      } else {
+        tempStreak = 1;
+      }
+    }
+    lastDate = dStr;
+    if (tempStreak > longestStreak) {
+      longestStreak = tempStreak;
+    }
+  }
+
+  if (currentStreak > longestStreak) {
+    longestStreak = currentStreak;
+  }
+
+  return { currentStreak, longestStreak };
+}
+
+/**
+ * Determines the calendar circle ring color/style for a given day:
+ * - Green (on_target): Either all calories have been taken or less than 100 calories left (caloriesLeft <= 100)
+ * - Yellow / Orange: Between 100 and 200 calories left (100 < caloriesLeft <= 200)
+ * - Red: Above 200 calories left (caloriesLeft > 200)
+ * - Dotted: No meals logged that day
+ * - Future: Upcoming days in neutral grey
+ */
+export function getDayRingStatus(
+  caloriesConsumed: number,
+  targetCalories: number,
+  hasMeals: boolean,
+  isFuture: boolean
+): DayRingStatus {
+  if (isFuture) return "future";
+  if (!hasMeals || caloriesConsumed <= 0) return "dotted";
+
+  const caloriesLeft = targetCalories - caloriesConsumed;
+  if (caloriesLeft <= 100) return "on_target";
+  if (caloriesLeft <= 200) return "yellow";
+  return "red";
+}
+

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,30 +11,34 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/auth-context";
-import { CalorieCard } from "./components/calorie-card";
-import { DashboardHeader } from "./components/dashboard-header";
-import { FiberHydrationCard } from "./components/fiber-hydration-card";
-import { MacroCards } from "./components/macro-cards";
-import { MealList } from "./components/meal-list";
-import { WeightCard } from "./components/weight-card";
 import { useNutritionDashboard } from "./use-nutrition-dashboard";
+import { HomeHeader } from "./components/home-header";
+import { WeeklyCalendarStrip } from "./components/weekly-calendar-strip";
+import { HeroCalorieCard } from "./components/hero-calorie-card";
+import { MacroPillRow } from "./components/macro-pill-row";
+import { RecentlyUploadedSection } from "./components/recently-uploaded-section";
+import { FloatingAddButton } from "./components/floating-add-button";
 import { AddFoodModal } from "../food-logging/add-food-modal";
 import { deleteMealItemApi } from "../food-logging/food-api";
 import type { MealTypeDisplay } from "../food-logging/food-domain";
 import { WaterModal } from "../tracking/water-modal";
 import { WeightModal } from "../tracking/weight-modal";
+import { MilestonesModal } from "../milestones/milestones-modal";
+import { RingColorsModal } from "./components/ring-colors-modal";
 
-export function DashboardScreen() {
-  const { session, signOut } = useAuth();
+type DashboardScreenProps = {
+  showFloatingButton?: boolean;
+};
+
+export function DashboardScreen({ showFloatingButton = true }: DashboardScreenProps = {}) {
+  const { session } = useAuth();
   const {
     loading,
     refreshing,
     error,
     data,
     selectedDate,
-    goToPreviousDay,
-    goToNextDay,
-    goToToday,
+    setSelectedDate,
     refetch,
   } = useNutritionDashboard();
 
@@ -43,14 +48,20 @@ export function DashboardScreen() {
 
   const [isWaterModalOpen, setIsWaterModalOpen] = useState(false);
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [isMilestonesOpen, setIsMilestonesOpen] = useState(false);
+  const [isRingColorsOpen, setIsRingColorsOpen] = useState(false);
 
   async function handleDeleteItem(itemId: string) {
-    if (!session?.access_token) return;
     setIsDeletingItemId(itemId);
-    const res = await deleteMealItemApi(itemId, session.access_token);
-    setIsDeletingItemId(null);
-    if (res.ok) {
-      refetch();
+    try {
+      const res = await deleteMealItemApi(itemId, session?.access_token);
+      if (res.ok) {
+        await refetch();
+      } else {
+        Alert.alert("Remove Meal", res.error || "Could not remove this meal.");
+      }
+    } finally {
+      setIsDeletingItemId(null);
     }
   }
 
@@ -59,261 +70,190 @@ export function DashboardScreen() {
     setIsAddModalOpen(true);
   }
 
-  function handleAddSuccess() {
-    setIsAddModalOpen(false);
-    refetch();
-  }
-
-  function handleWaterSuccess() {
-    setIsWaterModalOpen(false);
-    refetch();
-  }
-
-  function handleWeightSuccess() {
-    setIsWeightModalOpen(false);
-    refetch();
-  }
-
-  // 1. Initial Loading State
-  if (loading && !data) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color="#211F25" />
-          <Text style={styles.loadingText}>Loading nutrition targets...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // 2. Query Error State
-  if (error && !data) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        <View style={styles.centeredContainer}>
-          <View style={styles.errorCard} accessibilityRole="alert">
-            <Text style={styles.errorIcon}>⚠️</Text>
-            <Text style={styles.errorTitle}>Could not load dashboard</Text>
-            <Text style={styles.errorBody}>{error}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Retry loading dashboard"
-              onPress={refetch}
-              style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </Pressable>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!data) return null;
-
-  const {
-    profile,
-    mealBuckets,
-    allMealItems,
-    consumedTotals,
-    waterMl,
-    rolloverKcal,
-    availableCalories,
-    caloriesRemaining,
-  } = data;
-
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refetch}
-            tintColor="#211F25"
-            colors={["#211F25"]}
-          />
-        }
-      >
-        {/* Header with date navigation */}
-        <DashboardHeader
-          displayName={profile.displayName}
-          selectedDate={selectedDate}
-          onPreviousDay={goToPreviousDay}
-          onNextDay={goToNextDay}
-          onToday={goToToday}
-          onSignOut={signOut}
-        />
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* 1. Header with Brand & Streak */}
+      <HomeHeader
+        streak={data?.streakData?.currentStreak ?? 0}
+        onPressStreak={() => setIsMilestonesOpen(true)}
+      />
 
-        {/* Hero Calorie Card */}
-        <CalorieCard
-          baseTargetCalories={profile.targetCalories}
-          consumedCalories={consumedTotals.calories}
-          rolloverKcal={rolloverKcal}
-          availableCalories={availableCalories}
-          caloriesRemaining={caloriesRemaining}
-        />
+      {/* 2. Weekly Horizontal Calendar Strip */}
+      <WeeklyCalendarStrip
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+        daySummaries={data?.weekDaySummaries}
+        onOpenRingColorsModal={() => setIsRingColorsOpen(true)}
+      />
 
-        {/* Macronutrient Cards */}
-        <MacroCards
-          consumedProtein={consumedTotals.protein}
-          targetProtein={profile.targetProteinGrams}
-          consumedCarbs={consumedTotals.carbs}
-          targetCarbs={profile.targetCarbsGrams}
-          consumedFat={consumedTotals.fat}
-          targetFat={profile.targetFatGrams}
-        />
-
-        {/* Fiber & Hydration */}
-        <FiberHydrationCard
-          consumedFiber={consumedTotals.fiber}
-          targetFiber={profile.targetFiberGrams}
-          consumedWaterMl={waterMl}
-          targetWaterMl={profile.targetWaterMl}
-          onLogWater={() => setIsWaterModalOpen(true)}
-        />
-
-        {/* Body Weight Tracking */}
-        <WeightCard
-          latestWeightKg={data.latestWeightKg}
-          latestWeightDate={data.latestWeightDate}
-          baselineWeightKg={profile.weightKg}
-          targetWeightKg={profile.targetWeightKg}
-          onLogWeight={() => setIsWeightModalOpen(true)}
-        />
-
-        {/* Meal Items and Buckets */}
-        <MealList
-          mealBuckets={mealBuckets}
-          totalMealsCount={allMealItems.length}
-          onAddFood={handleOpenAddFood}
-          onDeleteFood={handleDeleteItem}
-          isDeletingId={isDeletingItemId}
-        />
-
-        {/* Phase status indicator */}
-        <View style={styles.footerNotice}>
-          <Text style={styles.footerTitle}>Priority 3B-4 Mobile Water & Weight Tracking Active</Text>
-          <Text style={styles.footerBody}>
-            Authoritative Supabase nutrition, meal logging, hydration logs, and weight entries are synchronized in real time.
-          </Text>
+      {/* 3. Main Scrollable Content */}
+      {loading && !data ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#111111" />
+          <Text style={styles.loadingText}>Loading your nutrition...</Text>
         </View>
-      </ScrollView>
+      ) : error && !data ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorTitle}>Could not load nutrition data</Text>
+          <Text style={styles.errorSubtitle}>{error}</Text>
+          <Pressable style={styles.retryButton} onPress={() => refetch()}>
+            <Text style={styles.retryButtonText}>Tap to Retry</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => refetch()}
+              tintColor="#111111"
+              colors={["#111111"]}
+            />
+          }
+        >
+          {data && (
+            <>
+              {/* Hero Calorie Card */}
+              <HeroCalorieCard
+                caloriesRemaining={data.caloriesRemaining}
+                caloriesConsumed={data.consumedTotals.calories}
+                calorieTarget={data.availableCalories}
+                baseTarget={data.profile.targetCalories}
+                rolloverKcal={data.rolloverKcal}
+              />
 
-      {/* Add Food Modal */}
+              {/* 3 Macro Cards (Protein, Carbs, Fats) */}
+              <MacroPillRow
+                proteinTarget={data.profile.targetProteinGrams || 120}
+                proteinConsumed={data.consumedTotals.protein || 0}
+                carbsTarget={data.profile.targetCarbsGrams || 250}
+                carbsConsumed={data.consumedTotals.carbs || 0}
+                fatTarget={data.profile.targetFatGrams || 65}
+                fatConsumed={data.consumedTotals.fat || 0}
+              />
+
+              {/* Recently Uploaded Meals Feed */}
+              <RecentlyUploadedSection
+                mealBuckets={data.mealBuckets}
+                allMealItems={data.allMealItems}
+                onAddFood={handleOpenAddFood}
+                onDeleteItem={handleDeleteItem}
+                isDeletingItemId={isDeletingItemId}
+              />
+            </>
+          )}
+        </ScrollView>
+      )}
+
+      {/* 4. Floating Action Button (+) */}
+      {showFloatingButton && (
+        <FloatingAddButton onPress={() => handleOpenAddFood("Breakfast")} />
+      )}
+
+      {/* 5. Food Logging Modal */}
       <AddFoodModal
         visible={isAddModalOpen}
-        selectedDate={selectedDate}
         initialMealType={addModalMealType}
+        selectedDate={selectedDate}
         onClose={() => setIsAddModalOpen(false)}
-        onSuccess={handleAddSuccess}
+        onSuccess={() => {
+          setIsAddModalOpen(false);
+          refetch();
+        }}
       />
 
-      {/* Water Logging Modal */}
+      {/* 6. Water Logging Modal */}
       <WaterModal
         visible={isWaterModalOpen}
-        selectedDate={selectedDate}
-        currentConsumedMl={waterMl}
-        targetWaterMl={profile.targetWaterMl}
         onClose={() => setIsWaterModalOpen(false)}
-        onSuccess={handleWaterSuccess}
+        onSuccess={refetch}
+        selectedDate={selectedDate}
+        currentConsumedMl={data?.waterMl || 0}
+        targetWaterMl={data?.profile.targetWaterMl || 2500}
       />
 
-      {/* Weight Logging Modal */}
+      {/* 7. Weight Logging Modal */}
       <WeightModal
         visible={isWeightModalOpen}
-        latestWeightKg={data.latestWeightKg}
-        baselineWeightKg={profile.weightKg}
-        targetWeightKg={profile.targetWeightKg}
         onClose={() => setIsWeightModalOpen(false)}
-        onSuccess={handleWeightSuccess}
+        onSuccess={refetch}
+        latestWeightKg={data?.latestWeightKg ?? null}
+        baselineWeightKg={data?.profile.weightKg || 70}
+        targetWeightKg={data?.profile.targetWeightKg ?? null}
+      />
+
+      {/* 8. Milestones Floating Page/Modal */}
+      <MilestonesModal
+        visible={isMilestonesOpen}
+        onClose={() => setIsMilestonesOpen(false)}
+        stats={{
+          currentStreak: data?.streakData?.currentStreak ?? 0,
+          longestStreak: data?.streakData?.longestStreak ?? 0,
+          totalMealsLogged: data?.streakData?.totalMealsLogged ?? 0,
+          totalDaysLogged: data?.streakData?.totalDaysLogged ?? 0,
+          waterMl: data?.waterMl || 0,
+          weightKg: data?.latestWeightKg ?? data?.profile?.weightKg ?? null,
+        }}
+      />
+
+      {/* 9. Ring Colors Explained Modal */}
+      <RingColorsModal
+        visible={isRingColorsOpen}
+        onClose={() => setIsRingColorsOpen(false)}
+        streak={data?.streakData?.currentStreak ?? 0}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: "#F8F7FB",
+    backgroundColor: "#F4F5F7",
+  },
+  scroll: {
+    flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 32,
-    gap: 20,
+    paddingBottom: 110,
   },
-  centeredContainer: {
+  centerContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
-    gap: 12,
+    padding: 24,
   },
   loadingText: {
-    color: "#77747C",
+    marginTop: 12,
     fontSize: 14,
+    color: "#8E8E93",
     fontWeight: "500",
   },
-  errorCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#FBD5D5",
-    alignItems: "center",
-    gap: 10,
-    width: "100%",
-    maxWidth: 340,
-  },
-  errorIcon: {
-    fontSize: 32,
-    marginBottom: 4,
-  },
   errorTitle: {
-    color: "#9B1C1C",
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
-  },
-  errorBody: {
-    color: "#77747C",
-    fontSize: 13,
+    color: "#111111",
+    marginBottom: 6,
     textAlign: "center",
-    lineHeight: 18,
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    color: "#8E8E93",
+    textAlign: "center",
+    marginBottom: 16,
   },
   retryButton: {
-    marginTop: 8,
-    paddingVertical: 10,
+    backgroundColor: "#111111",
+    paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 12,
-    backgroundColor: "#211F25",
+    borderRadius: 999,
   },
   retryButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
-  },
-  footerNotice: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#EAE9ED",
-    gap: 4,
-    marginTop: 4,
-  },
-  footerTitle: {
-    color: "#211F25",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  footerBody: {
-    color: "#85838A",
-    fontSize: 11,
-    lineHeight: 16,
-  },
-  pressed: {
-    opacity: 0.8,
   },
 });

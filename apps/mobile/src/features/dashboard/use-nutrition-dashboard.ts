@@ -72,12 +72,21 @@ export function useNutritionDashboard(initialDate: string = todayISO()): Nutriti
     await loadData(true);
   }, [loadData]);
 
+  const handleSetSelectedDate = useCallback((date: string) => {
+    const today = todayISO();
+    if (date > today) return; // Block selecting future dates
+    setSelectedDate(date);
+  }, []);
+
   const goToPreviousDay = useCallback(() => {
     setSelectedDate((current) => getYesterdayISO(current));
   }, []);
 
   const goToNextDay = useCallback(() => {
-    setSelectedDate((current) => getTomorrowISO(current));
+    setSelectedDate((current) => {
+      const tomorrow = getTomorrowISO(current);
+      return tomorrow > todayISO() ? current : tomorrow;
+    });
   }, []);
 
   const goToToday = useCallback(() => {
@@ -90,7 +99,7 @@ export function useNutritionDashboard(initialDate: string = todayISO()): Nutriti
     error,
     data,
     selectedDate,
-    setSelectedDate,
+    setSelectedDate: handleSetSelectedDate,
     goToPreviousDay,
     goToNextDay,
     goToToday,

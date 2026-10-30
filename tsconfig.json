@@ -17,32 +17,23 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
       "@fitai/nutrition-engine": [
         "./packages/nutrition-engine/src/index.ts"
       ]
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "packages/**/*.ts",
+    "scripts/**/*.js",
     "**/*.mts",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "trigger.config.ts"
   ],
   "exclude": [
     "node_modules",
-    "uploads",
-    "apps/mobile"
+    "uploads"
   ],
   "extends": "expo/tsconfig.base"
 }

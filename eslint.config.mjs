@@ -5,5 +5,5 @@ import tseslint from "typescript-eslint";
 export default defineConfig([
   ...tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
-  globalIgnores([".next/**", "node_modules/**", "coverage/**", "uploads/**"])
+  globalIgnores([".expo/**", "node_modules/**", "coverage/**", "uploads/**", "android/**", "ios/**"])
 ]);

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateDailyNutritionTotals,
+  calculateUserStreak,
   computeRolloverKcal,
   formatDisplayDate,
+  getDayRingStatus,
   getTomorrowISO,
   getYesterdayISO,
   groupMealItemsIntoBuckets,
@@ -141,6 +143,74 @@ describe("Mobile Dashboard Domain Logic", () => {
       expect(dinner?.items).toHaveLength(0);
       expect(snacks?.items).toHaveLength(1);
       expect(snacks?.totals.calories).toBe(80);
+    });
+  });
+
+  describe("Streak Calculations", () => {
+    it("returns 0 when user has never logged any meals", () => {
+      const res = calculateUserStreak([], "2026-10-28");
+      expect(res.currentStreak).toBe(0);
+      expect(res.longestStreak).toBe(0);
+    });
+
+    it("calculates active streak when logged today", () => {
+      const dates = ["2026-10-26", "2026-10-27", "2026-10-28"];
+      const res = calculateUserStreak(dates, "2026-10-28");
+      expect(res.currentStreak).toBe(3);
+      expect(res.longestStreak).toBe(3);
+    });
+
+    it("keeps streak active when user logged yesterday but not yet today", () => {
+      const dates = ["2026-10-26", "2026-10-27"];
+      const res = calculateUserStreak(dates, "2026-10-28");
+      expect(res.currentStreak).toBe(2);
+      expect(res.longestStreak).toBe(2);
+    });
+
+    it("breaks current streak when yesterday was missed, preserving longest streak", () => {
+      const dates = ["2026-10-20", "2026-10-21", "2026-10-22", "2026-10-24"];
+      const res = calculateUserStreak(dates, "2026-10-28");
+      expect(res.currentStreak).toBe(0);
+      expect(res.longestStreak).toBe(3);
+    });
+  });
+
+  describe("Calendar Day Ring Colors (Calories Left Rules)", () => {
+    it("returns future for upcoming days", () => {
+      expect(getDayRingStatus(0, 2000, false, true)).toBe("future");
+    });
+
+    it("returns dotted when no meals were logged", () => {
+      expect(getDayRingStatus(0, 2000, false, false)).toBe("dotted");
+    });
+
+    it("returns on_target (green) when all calories taken or less than 100 calories left", () => {
+      // 50 calories left (1950 of 2000 consumed)
+      expect(getDayRingStatus(1950, 2000, true, false)).toBe("on_target");
+      // exactly all calories taken (0 left)
+      expect(getDayRingStatus(2000, 2000, true, false)).toBe("on_target");
+      // exceeded target calories (negative left)
+      expect(getDayRingStatus(2100, 2000, true, false)).toBe("on_target");
+      // exactly 100 calories left
+      expect(getDayRingStatus(1900, 2000, true, false)).toBe("on_target");
+    });
+
+    it("returns yellow (orange) when between 100 and 200 calories left", () => {
+      // 199 calories left (e.g. 2221 of 2420)
+      expect(getDayRingStatus(2221, 2420, true, false)).toBe("yellow");
+      // 150 calories left
+      expect(getDayRingStatus(1850, 2000, true, false)).toBe("yellow");
+      // 101 calories left
+      expect(getDayRingStatus(1899, 2000, true, false)).toBe("yellow");
+      // exactly 200 calories left
+      expect(getDayRingStatus(1800, 2000, true, false)).toBe("yellow");
+    });
+
+    it("returns red when more than 200 calories are left", () => {
+      // 201 calories left
+      expect(getDayRingStatus(1799, 2000, true, false)).toBe("red");
+      // only breakfast logged (e.g. 500 of 2000 consumed -> 1500 left)
+      expect(getDayRingStatus(500, 2000, true, false)).toBe("red");
     });
   });
 });

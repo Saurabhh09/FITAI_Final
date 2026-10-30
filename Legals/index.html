@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FITAI — Track Your Calories With Just a Picture</title>
+  <meta name="description" content="Meet FITAI, the intelligent AI food scanner for effortless calorie and macro tracking. Snap a photo or search verified foods to get instant nutritional insights.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="LOGO.png" type="image/png">
+</head>
+<body>
+
+  <!-- ========================================================================
+       Navigation Bar
+       ======================================================================== -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-link" id="nav-brand">
+        <img src="LOGO.png" alt="FITAI Logo" class="brand-logo-img">
+        <span>FITAI</span>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#included" class="nav-link">What's Included</a></li>
+          <li><a href="#why-fitai" class="nav-link">Why FITAI</a></li>
+          <li><a href="#faq" class="nav-link">FAQ</a></li>
+          <li><a href="terms.html" class="nav-link">Terms</a></li>
+          <li><a href="privacy.html" class="nav-link">Privacy</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Desktop Store Badges -->
+        <div class="desktop-store-badges">
+          <!-- App Store Download Button (Navbar) -->
+          <a href="#download" class="store-badge-btn compact" aria-label="Download on App Store">
+            <svg class="store-icon" viewBox="0 0 384 512" fill="currentColor">
+              <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-14.7 69.5-34.3z"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">Download on</span>
+              <span class="store-btn-title">App Store</span>
+            </div>
+          </a>
+
+          <!-- Google Play Download Button (Navbar) -->
+          <a href="#download" class="store-badge-btn compact" aria-label="Get it on Google Play">
+            <svg class="store-icon" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">GET IT ON</span>
+              <span class="store-btn-title">Google Play</span>
+            </div>
+          </a>
+
+          <!-- Download APK Button (Navbar) -->
+          <a href="fitai.apk" download="FITAI.apk" class="store-badge-btn compact" aria-label="Download Android APK">
+            <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4128 13.8533 8.0818 12 8.0818s-3.5902.331-5.1368.8679L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">Android</span>
+              <span class="store-btn-title">Download APK</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Mobile / Tablet Quick CTA -->
+        <a href="#download" class="nav-mobile-cta">Get App</a>
+
+        <!-- Mobile Menu Toggle Button (Hamburger) -->
+        <button class="nav-toggle-btn" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="nav-toggle-icon"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+      <ul class="mobile-menu-list">
+        <li><a href="#features" class="mobile-nav-link">Features</a></li>
+        <li><a href="#included" class="mobile-nav-link">What's Included</a></li>
+        <li><a href="#why-fitai" class="mobile-nav-link">Why FITAI</a></li>
+        <li><a href="#faq" class="mobile-nav-link">FAQ</a></li>
+        <li><a href="terms.html" class="mobile-nav-link">Terms of Service</a></li>
+        <li><a href="privacy.html" class="mobile-nav-link">Privacy Policy</a></li>
+      </ul>
+      <div class="mobile-drawer-footer">
+        <span class="mobile-drawer-label">Get FITAI App</span>
+        <div class="mobile-store-group">
+          <a href="#download" class="store-badge-btn" aria-label="Download on App Store">
+            <svg class="store-icon" viewBox="0 0 384 512" fill="currentColor">
+              <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-14.7 69.5-34.3z"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">Download on</span>
+              <span class="store-btn-title">App Store</span>
+            </div>
+          </a>
+          <a href="#download" class="store-badge-btn" aria-label="Get it on Google Play">
+            <svg class="store-icon" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">GET IT ON</span>
+              <span class="store-btn-title">Google Play</span>
+            </div>
+          </a>
+          <a href="fitai.apk" download="FITAI.apk" class="store-badge-btn" aria-label="Download Android APK">
+            <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4128 13.8533 8.0818 12 8.0818s-3.5902.331-5.1368.8679L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">Direct</span>
+              <span class="store-btn-title">Download APK</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       Hero Section
+       ======================================================================== -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <!-- Social Proof Pill -->
+        <div class="social-pill">
+          <span class="star-rating">★★★★★</span>
+          <span>Loved by health seekers • <strong>4.9 rating</strong></span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="hero-title">
+          Meet FITAI<br>
+          <span class="highlight">Track your calories</span><br>
+          with just a picture
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="hero-subtitle">
+          Meet FITAI, the intelligent food scanner for effortless nutrition tracking. Snap a photo, scan your meal, or search verified foods to get instant calories and macros.
+        </p>
+
+        <!-- Download Badges -->
+        <div class="hero-actions" id="download">
+          <div class="store-badges-group">
+            <!-- App Store Button -->
+            <a href="#" class="store-badge-btn" aria-label="Download on Apple App Store">
+              <svg class="store-icon" viewBox="0 0 384 512" fill="currentColor">
+                <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-14.7 69.5-34.3z"/>
+              </svg>
+              <div class="store-btn-text">
+                <span class="store-btn-sub">Download on the</span>
+                <span class="store-btn-title">App Store</span>
+              </div>
+            </a>
+
+            <!-- Google Play Button -->
+            <a href="#" class="store-badge-btn" aria-label="Get it on Google Play">
+              <svg class="store-icon" viewBox="0 0 512 512" fill="currentColor">
+                <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
+              </svg>
+              <div class="store-btn-text">
+                <span class="store-btn-sub">GET IT ON</span>
+                <span class="store-btn-title">Google Play</span>
+              </div>
+            </a>
+
+            <!-- Download APK Button -->
+            <a href="fitai.apk" download="FITAI.apk" class="store-badge-btn" aria-label="Download Android APK">
+              <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4128 13.8533 8.0818 12 8.0818s-3.5902.331-5.1368.8679L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+              </svg>
+              <div class="store-btn-text">
+                <span class="store-btn-sub">Direct</span>
+                <span class="store-btn-title">Download APK</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="hero-disclaimer-pill">
+            <span>⚕️ Algorithmic estimates for wellness. Weight loss disabled for minors &lt; 18.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Phone Mockup -->
+      <div class="hero-mockup-col">
+        <div class="hero-mockup-frame">
+          <img src="Demo1.png" alt="FITAI Mobile App Dashboard" class="hero-phone-img">
+
+          <!-- Floating Result Pill -->
+          <div class="hero-floating-bubble bubble-left">
+            <div class="bubble-icon">✓</div>
+            <div class="bubble-text">
+              <strong>Whole Wheat Roti</strong>
+              <span>416 kcal • 13g Protein logged</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       Community & Influencer Testimonials
+       ======================================================================== -->
+  <section class="section-wrapper bg-subtle" id="testimonials">
+    <div class="section-container">
+      <div class="section-header-center">
+        <span class="section-badge">Community Verified</span>
+        <h2 class="section-title">Loved by fitness enthusiasts &amp; daily trackers</h2>
+        <p class="section-desc">
+          Real people saving time, optimizing their nutrition, and hitting their body composition goals with zero friction.
+        </p>
+      </div>
+
+      <div class="testimonials-grid">
+        <!-- Review 1 -->
+        <div class="testimonial-card">
+          <div>
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">JJ</div>
+              <div>
+                <div class="testimonial-author">Jeremiah Jones</div>
+                <div class="testimonial-handle">@jeremiah.fit</div>
+              </div>
+            </div>
+            <p class="testimonial-quote">
+              Make a healthier choice for your late night meal and use FITAI to track your calories. The speed of scanning dishes is unmatched.
+            </p>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="testimonial-card">
+          <div>
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">DG</div>
+              <div>
+                <div class="testimonial-author">Dawson Gibbs</div>
+                <div class="testimonial-handle">@dawsongibbs</div>
+              </div>
+            </div>
+            <p class="testimonial-quote">
+              Track with FITAI app — if you're not tracking your calories while going for your fitness goals, you're doing it all wrong.
+            </p>
+          </div>
+        </div>
+
+        <!-- Review 3 -->
+        <div class="testimonial-card">
+          <div>
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">HF</div>
+              <div>
+                <div class="testimonial-author">Hussein Farhat</div>
+                <div class="testimonial-handle">@hussein_lift</div>
+              </div>
+            </div>
+            <p class="testimonial-quote">
+              If you're tracking your calories and macros correctly with FITAI, you can eat balanced meals and still get in the best shape of your life.
+            </p>
+          </div>
+        </div>
+
+        <!-- Review 4 -->
+        <div class="testimonial-card">
+          <div>
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">KK</div>
+              <div>
+                <div class="testimonial-author">Kadin Kerns</div>
+                <div class="testimonial-handle">@kadin.kerns</div>
+              </div>
+            </div>
+            <p class="testimonial-quote">
+              Looking good as usual and my calories are completely dialed in with FITAI. The automatic macro breakdown is spot on.
+            </p>
+          </div>
+        </div>
+
+        <!-- Review 5 -->
+        <div class="testimonial-card">
+          <div>
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">BW</div>
+              <div>
+                <div class="testimonial-author">Brian Wallack</div>
+                <div class="testimonial-handle">@brianwallack</div>
+              </div>
+            </div>
+            <p class="testimonial-quote">
+              FITAI can literally track anything from a quick picture. Home cooking, curries, mixed salads, breakfast plates — it just works.
+            </p>
+          </div>
+        </div>
+
+        <!-- Review 6 -->
+        <div class="testimonial-card">
+          <div>
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">AE</div>
+              <div>
+                <div class="testimonial-author">Alex Eubank</div>
+                <div class="testimonial-handle">@alexeubank</div>
+              </div>
+            </div>
+            <p class="testimonial-quote">
+              FITAI is the cleanest and fastest calorie tracker I've ever used. No annoying bloatware, just pure speed and accurate nutrition.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       "What does FITAI include?" Spotlight Section
+       ======================================================================== -->
+  <section class="section-wrapper" id="included">
+    <div class="section-container">
+      <div class="section-header-center">
+        <span class="section-badge">All-In-One Solution</span>
+        <h2 class="section-title">What does FITAI include?</h2>
+        <p class="section-desc">
+          Everything you need to master your nutrition without weighing every single gram or spending hours typing entries.
+        </p>
+      </div>
+
+      <div class="spotlight-grid">
+        <!-- Mockup Column -->
+        <div class="spotlight-mockup-col">
+          <img src="Demo1.png" alt="FITAI Nutrition Features" class="spotlight-phone-img">
+        </div>
+
+        <!-- Feature Stack Column -->
+        <div class="spotlight-cards-col">
+          <div class="spotlight-feature-card">
+            <h3>📸 Track Your Food With Just a Picture</h3>
+            <p>
+              Snap a photo with FITAI. Our intelligent vision engine calculates food volume, identifies ingredients, and breaks down calories, protein, carbs, and fat in seconds.
+            </p>
+          </div>
+
+          <div class="spotlight-feature-card">
+            <h3>🔍 Search Our Database of Verified Foods</h3>
+            <p>
+              Quickly find and log foods from our extensive database powered by USDA FoodData Central for clinically reliable and laboratory-verified nutritional accuracy.
+            </p>
+          </div>
+
+          <div class="spotlight-feature-card">
+            <h3>🎯 Complete Progress Tracking &amp; Dynamic Goals</h3>
+            <p>
+              Monitor your daily calorie budget, macronutrient splits, hydration, and body weight over time with responsive rings that update in real time.
+            </p>
+          </div>
+
+          <div class="spotlight-feature-card">
+            <h3>💧 Keep Track of Water &amp; Daily Wellness</h3>
+            <p>
+              Log your water intake and weight check-ins effortlessly. FITAI helps you stay consistent and build healthy habits that last.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       "Why choose FITAI?" 3-Column Benefits
+       ======================================================================== -->
+  <section class="section-wrapper bg-subtle" id="why-fitai">
+    <div class="section-container">
+      <div class="section-header-center">
+        <span class="section-badge">The FITAI Advantage</span>
+        <h2 class="section-title">Why choose FITAI?</h2>
+        <p class="section-desc">
+          FITAI is the most advanced, scientifically grounded calorie and macronutrient tracker.
+        </p>
+      </div>
+
+      <div class="benefits-grid">
+        <!-- Benefit 1 -->
+        <div class="benefit-card">
+          <div class="benefit-icon-box">⏱️</div>
+          <h3>Free up your time</h3>
+          <p>
+            FITAI automatically calculates your calories, protein, carbs, and fat. No more guessing portion sizes, weighing chicken breasts, or manual food diary chores.
+          </p>
+        </div>
+
+        <!-- Benefit 2 -->
+        <div class="benefit-card">
+          <div class="benefit-icon-box">🥗</div>
+          <h3>Scientifically grounded</h3>
+          <p>
+            Energy expenditure is calculated using validated Mifflin-St Jeor metabolic formulas with strict caloric minimum safety floors to ensure healthy, sustainable nutrition.
+          </p>
+        </div>
+
+        <!-- Benefit 3 -->
+        <div class="benefit-card">
+          <div class="benefit-icon-box">🔒</div>
+          <h3>Total data sovereignty</h3>
+          <p>
+            Your health and food data belong entirely to you. Cloud-encrypted storage, zero third-party advertising tracking, and permanent one-click account purge anytime.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       High-Contrast Dark Section: "Thousands of users talk about us"
+       ======================================================================== -->
+  <section class="dark-section" id="reviews">
+    <div class="section-container">
+      <div class="section-header-center">
+        <span class="section-badge" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">Real User Results</span>
+        <h2 class="section-title">Thousands of users talk about us</h2>
+        <p class="section-desc">
+          See why users are switching from traditional calorie trackers to FITAI every single day.
+        </p>
+      </div>
+
+      <div class="dark-reviews-grid">
+        <!-- Dark Review 1 -->
+        <div class="dark-review-card">
+          <div>
+            <div class="dark-review-header">
+              <div class="dark-avatar">P</div>
+              <div>
+                <div class="dark-author-name">pree.palmer</div>
+                <div class="dark-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dark-review-quote">
+              "I'm down 17 lbs with FITAI and it doesn't need to be stressful. It's fast, super accurate, and so convenient."
+            </p>
+          </div>
+        </div>
+
+        <!-- Dark Review 2 -->
+        <div class="dark-review-card">
+          <div>
+            <div class="dark-review-header">
+              <div class="dark-avatar">T</div>
+              <div>
+                <div class="dark-author-name">Ordinary Tony</div>
+                <div class="dark-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dark-review-quote">
+              "I'VE BEEN BULKING FOR A YEAR STRAIGHT WITH FITAI. Macro tracking has never been this effortless 🔥"
+            </p>
+          </div>
+        </div>
+
+        <!-- Dark Review 3 -->
+        <div class="dark-review-card">
+          <div>
+            <div class="dark-review-header">
+              <div class="dark-avatar">S</div>
+              <div>
+                <div class="dark-author-name">2025weightloss...</div>
+                <div class="dark-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dark-review-quote">
+              "I love your app! It helps me keep track of food without overthinking everything and gives me an exact visual of my portions ❤️"
+            </p>
+          </div>
+        </div>
+
+        <!-- Dark Review 4 -->
+        <div class="dark-review-card">
+          <div>
+            <div class="dark-review-header">
+              <div class="dark-avatar">M</div>
+              <div>
+                <div class="dark-author-name">Mathias K.</div>
+                <div class="dark-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dark-review-quote">
+              "I started using it two days ago and I'm already hooked. The photo scanner picked up my homemade curry perfectly."
+            </p>
+          </div>
+        </div>
+
+        <!-- Dark Review 5 -->
+        <div class="dark-review-card">
+          <div>
+            <div class="dark-review-header">
+              <div class="dark-avatar">N</div>
+              <div>
+                <div class="dark-author-name">Ms Nsofor</div>
+                <div class="dark-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dark-review-quote">
+              "For people who want to control their nutrition without spending hours logging, FITAI is genuinely the app for you 🙌"
+            </p>
+          </div>
+        </div>
+
+        <!-- Dark Review 6 -->
+        <div class="dark-review-card">
+          <div>
+            <div class="dark-review-header">
+              <div class="dark-avatar">R</div>
+              <div>
+                <div class="dark-author-name">Rohan S.</div>
+                <div class="dark-stars">★★★★★</div>
+              </div>
+            </div>
+            <p class="dark-review-quote">
+              "The Indian food recognition is insane. Rotis, lentils, rice, paneer — it detects all of it on a single thali plate."
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       Frequently Asked Questions (Interactive Accordion)
+       ======================================================================== -->
+  <section class="section-wrapper" id="faq">
+    <div class="section-container">
+      <div class="section-header-center">
+        <span class="section-badge">FAQ</span>
+        <h2 class="section-title">Frequently asked questions</h2>
+        <p class="section-desc">
+          Answers to the most common questions about FITAI food scanning, accuracy, and data security.
+        </p>
+      </div>
+
+      <div class="faq-container">
+        <!-- FAQ 1 -->
+        <details class="faq-item" open>
+          <summary class="faq-question">
+            <span>How does FITAI's AI camera food scanner work?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="faq-answer">
+            When you snap or upload a meal photo, FITAI first runs an automated non-food safety gate. Once verified as food, our vision pipeline estimates ingredients, portion sizes, and volumes, mapping them against verified USDA FoodData Central nutritional values to calculate calories, protein, carbs, and fats in seconds.
+          </div>
+        </details>
+
+        <!-- FAQ 2 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>What happens if I upload a picture of a non-food item?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="faq-answer">
+            FITAI includes an automated image classifier before processing. If an image contains furniture, electronics, documents, or other non-food subjects, the app immediately informs you on screen without attempting a false calorie breakdown, saving processing time and keeping your diary accurate.
+          </div>
+        </details>
+
+        <!-- FAQ 3 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>Can I customize my daily calories and macronutrient goals?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="faq-answer">
+            Yes! In addition to automatic metabolic recommendations computed from your height, weight, sex, and activity level, you can edit your exact target calories, protein, carbs, fats, and water intake directly from your Profile settings anytime.
+          </div>
+        </details>
+
+        <!-- FAQ 4 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>What happens to the food photos I upload?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="faq-answer">
+            Your photos are encrypted in transit and securely hosted in your private, authenticated account so you can view your meal history. We never sell your photos or health logs to third parties or data brokers.
+          </div>
+        </details>
+
+        <!-- FAQ 5 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>How do I permanently delete my account and data?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="faq-answer">
+            You can delete your account at any time in the mobile app under <strong>Profile &rarr; Delete Account</strong>. Following a 2-step confirmation, all your profile details, biometric metrics, meal logs, weight entries, and CDN-hosted photos are permanently wiped from our databases.
+          </div>
+        </details>
+
+        <!-- FAQ 6 -->
+        <details class="faq-item">
+          <summary class="faq-question">
+            <span>Is FITAI intended for medical diagnosis or clinical treatment?</span>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </summary>
+          <div class="faq-answer">
+            No. FITAI is an informational wellness and fitness tool. It is not a medical device and does not diagnose, treat, or prevent clinical conditions (such as diabetes, renal disease, or eating disorders). Always consult a licensed healthcare professional before starting any calorie-deficit regimen. Caloric deficit goals are strictly prohibited for minors under 18.
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       50k Ratings / Bottom Download Banner
+       ======================================================================== -->
+  <section class="cta-banner-section">
+    <div class="cta-banner-content">
+      <div class="cta-stars">★★★★★</div>
+      <h2 class="cta-banner-title">Over 50,000+ 5-star ratings</h2>
+      <p class="cta-rating-text">★ 4.8 / 5 on App Store &nbsp;•&nbsp; ★ 4.7 / 5 on Google Play</p>
+
+      <div class="store-badges-group" style="margin-top: 14px;">
+        <a href="#" class="store-badge-btn" aria-label="Download on App Store">
+          <svg class="store-icon" viewBox="0 0 384 512" fill="currentColor">
+            <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-14.7 69.5-34.3z"/>
+          </svg>
+          <div class="store-btn-text">
+            <span class="store-btn-sub">Download on the</span>
+            <span class="store-btn-title">App Store</span>
+          </div>
+        </a>
+
+        <a href="#" class="store-badge-btn" aria-label="Get it on Google Play">
+          <svg class="store-icon" viewBox="0 0 512 512" fill="currentColor">
+            <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
+          </svg>
+          <div class="store-btn-text">
+            <span class="store-btn-sub">GET IT ON</span>
+            <span class="store-btn-title">Google Play</span>
+          </div>
+        </a>
+
+        <a href="fitai.apk" download="FITAI.apk" class="store-badge-btn" aria-label="Download Android APK">
+          <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4128 13.8533 8.0818 12 8.0818s-3.5902.331-5.1368.8679L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+          </svg>
+          <div class="store-btn-text">
+            <span class="store-btn-sub">Direct</span>
+            <span class="store-btn-title">Download APK</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       Footer
+       ======================================================================== -->
+  <footer class="footer">
+    <div class="footer-container">
+      <!-- Col 1: Brand & Store Links -->
+      <div class="footer-brand">
+        <a href="index.html" class="brand-link">
+          <img src="LOGO.png" alt="FITAI Logo" class="brand-logo-img">
+          <span>FITAI</span>
+        </a>
+        <p>
+          Intelligent AI calorie and macronutrient tracking. Built with clinical metabolic formulas and cutting-edge vision technology.
+        </p>
+
+        <div class="store-badges-group" style="margin-top: 8px;">
+          <a href="#" class="store-badge-btn compact" aria-label="Download on App Store">
+            <svg class="store-icon" viewBox="0 0 384 512" fill="currentColor">
+              <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-14.7 69.5-34.3z"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">Download on</span>
+              <span class="store-btn-title">App Store</span>
+            </div>
+          </a>
+
+          <a href="#" class="store-badge-btn compact" aria-label="Get it on Google Play">
+            <svg class="store-icon" viewBox="0 0 512 512" fill="currentColor">
+              <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">GET IT ON</span>
+              <span class="store-btn-title">Google Play</span>
+            </div>
+          </a>
+
+          <a href="fitai.apk" download="FITAI.apk" class="store-badge-btn compact" aria-label="Download Android APK">
+            <svg class="store-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4128 13.8533 8.0818 12 8.0818s-3.5902.331-5.1368.8679L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+            </svg>
+            <div class="store-btn-text">
+              <span class="store-btn-sub">Android</span>
+              <span class="store-btn-title">Download APK</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2: Legal -->
+      <div class="footer-col">
+        <h4>Legal &amp; Policy</h4>
+        <ul>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html#sec-4">Clinical Disclaimer</a></li>
+          <li><a href="terms.html#sec-13">Account Deletion Rights</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Product & Support -->
+      <div class="footer-col">
+        <h4>Product &amp; Help</h4>
+        <ul>
+          <li><a href="#features">AI Food Scanner</a></li>
+          <li><a href="#why-fitai">Nutrition Engine</a></li>
+          <li><a href="#faq">Frequently Asked Questions</a></li>
+          <li><a href="mailto:support@fitai.app">Contact: support@fitai.app</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>&copy; 2026 FITAI. All rights reserved.</div>
+      <div style="font-size: 0.82rem;">Medical Notice: Informational guidance only. Not intended for clinical diagnoses.</div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      const toggle = document.getElementById('navToggle');
+      const drawer = document.getElementById('mobileDrawer');
+      if (!toggle || !drawer) return;
+
+      toggle.addEventListener('click', function() {
+        const isOpen = drawer.classList.toggle('active');
+        toggle.classList.toggle('active');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+
+      drawer.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+          drawer.classList.remove('active');
+          toggle.classList.remove('active');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

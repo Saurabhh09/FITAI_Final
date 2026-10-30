@@ -3,6 +3,7 @@ import {
   AccessibilityInfo,
   ActivityIndicator,
   Animated,
+  Image,
   KeyboardAvoidingView,
   PanResponder,
   Platform,
@@ -857,32 +858,46 @@ export function OnboardingScreen({ initialAnswers, onComplete, onSignOut, onBack
               <View style={[styles.progressFill, { width: `${progress}%` }]} />
             </View>
           </View>
-          <View style={styles.brandMark} accessibilityLabel="FITAI">
-            <Text style={styles.brandLetter}>F</Text>
-          </View>
+          <Image
+            source={require("../../../assets/logo.png")}
+            style={styles.brandLogo}
+            resizeMode="contain"
+            accessible
+            accessibilityLabel="FITAI"
+          />
         </View>
 
         <Animated.View style={[styles.flex, { opacity, transform: [{ translateY }] }]}>
-          <ScrollView
-            key={step.id}
-            style={styles.flex}
-            scrollEnabled={step.type !== "date"}
-            contentContainerStyle={[styles.main, { paddingHorizontal: narrow ? 20 : 25 }]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-            showsVerticalScrollIndicator={false}
-          >
-            {step.type === "insight" && !isCustomStep ? (
-              <Text style={styles.eyebrow}>{step.id === "goal-insight" ? "YOUR GOAL, FIRST" : "PERSONALIZED FOR YOU"}</Text>
-            ) : null}
-            {!isCustomStep ? (
-              <>
-                <Text accessibilityRole="header" style={styles.heading}>{step.title}</Text>
-                <Text style={styles.subtitle}>{step.subtitle}</Text>
-              </>
-            ) : null}
-            <View style={styles.questionContent}>{renderBody()}</View>
-          </ScrollView>
+          {step.type === "date" ? (
+            <View
+              key={step.id}
+              style={[styles.main, { paddingHorizontal: narrow ? 20 : 25 }]}
+            >
+              <Text accessibilityRole="header" style={styles.heading}>{step.title}</Text>
+              <Text style={styles.subtitle}>{step.subtitle}</Text>
+              <View style={styles.questionContent}>{renderBody()}</View>
+            </View>
+          ) : (
+            <ScrollView
+              key={step.id}
+              style={styles.flex}
+              contentContainerStyle={[styles.main, { paddingHorizontal: narrow ? 20 : 25 }]}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+              showsVerticalScrollIndicator={false}
+            >
+              {step.type === "insight" && !isCustomStep ? (
+                <Text style={styles.eyebrow}>{step.id === "goal-insight" ? "YOUR GOAL, FIRST" : "PERSONALIZED FOR YOU"}</Text>
+              ) : null}
+              {!isCustomStep ? (
+                <>
+                  <Text accessibilityRole="header" style={styles.heading}>{step.title}</Text>
+                  <Text style={styles.subtitle}>{step.subtitle}</Text>
+                </>
+              ) : null}
+              <View style={styles.questionContent}>{renderBody()}</View>
+            </ScrollView>
+          )}
         </Animated.View>
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
@@ -934,6 +949,8 @@ const styles = StyleSheet.create({
   progressCaption: { color: "#AAA7AF", fontSize: 9, fontWeight: "700", letterSpacing: 1.2 },
   progressTrack: { height: 7, borderRadius: 7, overflow: "hidden", backgroundColor: "#EEEDEF" },
   progressFill: { height: "100%", borderRadius: 7, backgroundColor: COLORS.ink },
+  brandTrack: { height: 7, borderRadius: 7, overflow: "hidden", backgroundColor: "#EEEDEF" },
+  brandLogo: { width: 32, height: 32, borderRadius: 8 },
   brandMark: { width: 31, height: 31, borderRadius: 11, backgroundColor: COLORS.ink, alignItems: "center", justifyContent: "center" },
   brandLetter: { color: COLORS.white, fontSize: 19, fontWeight: "800" },
   main: { flexGrow: 1, paddingTop: 34, paddingBottom: 32, width: "100%", maxWidth: 800, alignSelf: "center" },

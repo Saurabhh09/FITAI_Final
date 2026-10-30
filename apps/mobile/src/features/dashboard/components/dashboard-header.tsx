@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { formatDisplayDate, todayISO } from "../dashboard-domain";
 
 type DashboardHeaderProps = {
@@ -26,9 +26,13 @@ export function DashboardHeader({
       {/* Brand & Account Row */}
       <View style={styles.topRow}>
         <View style={styles.brandRow} accessibilityLabel="FITAI">
-          <View style={styles.brandMark} accessible accessibilityLabel="FITAI mark">
-            <Text style={styles.brandLetter}>F</Text>
-          </View>
+          <Image
+            source={require("../../../../assets/logo.png")}
+            style={styles.brandLogo}
+            resizeMode="contain"
+            accessible
+            accessibilityLabel="FITAI mark"
+          />
           <View>
             <Text style={styles.brandName}>FITAI</Text>
             <Text style={styles.greeting} numberOfLines={1}>
@@ -105,6 +109,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+  },
+  brandLogo: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
   },
   brandMark: {
     width: 38,

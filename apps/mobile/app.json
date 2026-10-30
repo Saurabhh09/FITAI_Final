@@ -28,6 +28,12 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 128
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow FITAI to access your camera to scan meals and analyze food nutrition."
+        }
       ]
     ],
     "experiments": {

@@ -1,0 +1,6 @@
+import React from "react";
+import { DashboardScreen } from "../../features/dashboard/dashboard-screen";
+
+export default function HomeTabScreen() {
+  return <DashboardScreen />;
+}

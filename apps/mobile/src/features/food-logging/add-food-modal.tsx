@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Modal,
-  SafeAreaView,
+  Platform,
+  StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/auth-context";
 import {
   type BackendMealType,
@@ -204,6 +206,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F8F7FB",
+    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight || 28) + 12 : 0,
   },
   loadingContainer: {
     flex: 1,
