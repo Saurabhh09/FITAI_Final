@@ -360,12 +360,14 @@ Respond ONLY with valid JSON:
 export async function pollMealScanResult(
   scanId: string,
   base64Fallback?: string,
-  maxAttempts = 18,
-  intervalMs = 1200
+  maxAttempts = 30,
+  intervalMs = 1000,
+  onProgress?: (attempt: number) => void
 ): Promise<{ ok: boolean; analysis?: MealAnalysisResult; error?: string }> {
   const supabase = getSupabase();
 
   for (let i = 0; i < maxAttempts; i++) {
+    onProgress?.(i + 1);
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
 
     try {
@@ -444,10 +446,10 @@ export async function executeMealScanPipeline(params: {
 }> {
   try {
     // Step 1: Upload to ImageKit
-    params.onStepChange?.("Saving image to ImageKit...");
+    params.onStepChange?.("Processing your meal photo...");
     const uploadRes = await uploadMealImageToImageKit(params.base64Image);
     if (!uploadRes.ok || !uploadRes.url) {
-      return { ok: false, error: uploadRes.error || "Failed to upload image to ImageKit." };
+      return { ok: false, error: uploadRes.error || "Failed to upload image." };
     }
 
     // Step 1B: Downscale Image via ImageKit Real-time URL Transformation (w-1024, h-1024, c-at_max)
@@ -460,7 +462,7 @@ export async function executeMealScanPipeline(params: {
     });
 
     // Step 2: Record in Supabase (status = 'pending')
-    params.onStepChange?.("Recording scan in database...");
+    params.onStepChange?.("Preparing meal analysis...");
     const pendingRes = await saveMealScanPending({
       userId: params.userId,
       imageUrl: downscaledUrl,
@@ -469,16 +471,32 @@ export async function executeMealScanPipeline(params: {
     const scanId = pendingRes.scanId;
 
     // Step 3: Trigger background worker with downscaled ImageKit URL
-    params.onStepChange?.("Analyzing macros with AI...");
+    params.onStepChange?.("AI is inspecting your plate...");
     const triggerRes = await triggerMealScanTask({
       scanId,
       imageUrl: downscaledUrl,
       userId: params.userId,
     });
 
-    // Step 4: If Trigger.dev was triggered successfully, poll Supabase (checks for ~7 seconds)
+    // Step 4: If Trigger.dev was triggered successfully, poll Supabase (checks up to 30 seconds, returns instantly upon completion)
     if (triggerRes.ok) {
-      const pollRes = await pollMealScanResult(scanId, undefined, 6, 1200);
+      const pollRes = await pollMealScanResult(
+        scanId,
+        undefined,
+        30,
+        1000,
+        (attempt) => {
+          if (attempt <= 4) {
+            params.onStepChange?.("AI is analyzing meal items...");
+          } else if (attempt <= 9) {
+            params.onStepChange?.("Calculating calories and macros...");
+          } else if (attempt <= 15) {
+            params.onStepChange?.("Macros are on the way, please wait...");
+          } else {
+            params.onStepChange?.("Almost ready! Finalizing nutrition...");
+          }
+        }
+      );
       if (pollRes.ok && pollRes.analysis) {
         return {
           ok: true,
@@ -490,7 +508,7 @@ export async function executeMealScanPipeline(params: {
     }
 
     // Step 5: Direct Gemini Vision fallback if Trigger.dev was offline or timed out
-    params.onStepChange?.("Analyzing macros with AI...");
+    params.onStepChange?.("Connecting to backup AI...");
     const aiRes = await analyzeMealDirectWithGemini(params.base64Image, 30000);
     if (aiRes.ok && aiRes.analysis) {
       await updateMealScanCompleted({

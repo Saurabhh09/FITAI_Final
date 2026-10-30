@@ -232,7 +232,7 @@ export function CameraScreen({ onOpenManualLog, onMealLogged }: CameraScreenProp
 
     setScanError(null);
     setScanStep("checking_food");
-    setStatusMessage("Checking photo for food...");
+    setStatusMessage("Processing your meal photo...");
 
     try {
       // Step 1: Pre-flight food classification gate
@@ -246,7 +246,7 @@ export function CameraScreen({ onOpenManualLog, onMealLogged }: CameraScreenProp
 
       // Step 2: Valid food photo detected - proceed with ImageKit upload and Trigger.dev background task
       setScanStep("uploading");
-      setStatusMessage("Saving image to ImageKit...");
+      setStatusMessage("AI is inspecting your plate...");
 
       const result = await executeMealScanPipeline({
         base64Image: selectedImage.base64,
