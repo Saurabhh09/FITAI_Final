@@ -238,7 +238,7 @@ export async function triggerMealScanTask(params: {
  */
 export async function analyzeMealDirectWithGemini(
   base64Image: string,
-  timeoutMs = 15000
+  timeoutMs = 30000
 ): Promise<{ ok: boolean; analysis?: MealAnalysisResult; error?: string }> {
   try {
     const apiKey =
@@ -334,7 +334,11 @@ Respond ONLY with valid JSON:
           lastErr = data.error?.message || `HTTP ${res.status}`;
         }
       } catch (err: any) {
-        lastErr = err.name === "AbortError" ? "Request timed out" : err.message;
+        const isAbort =
+          err.name === "AbortError" ||
+          (err.message && err.message.toLowerCase().includes("cancel")) ||
+          (err.message && err.message.toLowerCase().includes("abort"));
+        lastErr = isAbort ? "Meal analysis took too long. Please try again." : err.message;
       } finally {
         clearTimeout(timeoutId);
       }
@@ -472,9 +476,9 @@ export async function executeMealScanPipeline(params: {
       userId: params.userId,
     });
 
-    // Step 4: If Trigger.dev was triggered successfully, poll Supabase (completes in ~10-12s)
+    // Step 4: If Trigger.dev was triggered successfully, poll Supabase (checks for ~7 seconds)
     if (triggerRes.ok) {
-      const pollRes = await pollMealScanResult(scanId, undefined, 18, 1200);
+      const pollRes = await pollMealScanResult(scanId, undefined, 6, 1200);
       if (pollRes.ok && pollRes.analysis) {
         return {
           ok: true,
@@ -486,8 +490,8 @@ export async function executeMealScanPipeline(params: {
     }
 
     // Step 5: Direct Gemini Vision fallback if Trigger.dev was offline or timed out
-    params.onStepChange?.("Analyzing with backup AI...");
-    const aiRes = await analyzeMealDirectWithGemini(params.base64Image, 15000);
+    params.onStepChange?.("Analyzing macros with AI...");
+    const aiRes = await analyzeMealDirectWithGemini(params.base64Image, 30000);
     if (aiRes.ok && aiRes.analysis) {
       await updateMealScanCompleted({
         scanId,
